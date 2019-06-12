@@ -648,6 +648,26 @@ std::string k8s_audit_filter_check::check_run_as_group_within(const json &j, std
 		string("false"));
 }
 
+std::string k8s_audit_filter_check::check_supplemental_groups_within(const json &j, std::string &field, std::string &idx)
+{
+	std::list<std::pair<int64_t,int64_t>> allowed_gids;
+
+	if(!parse_value_ranges(idx, allowed_gids))
+	{
+		return string("false");
+	}
+
+	for(auto &gid : j)
+	{
+		if(!check_value_range(gid, allowed_gids))
+		{
+			return string("false");
+		}
+	}
+
+	return string("true");
+}
+
 std::string k8s_audit_filter_check::index_run_as_group_defined(const json &j, std::string &field, std::string &idx)
 {
 	nlohmann::json::json_pointer jrun_as = "/securityContext/RunAsGroup"_json_pointer;
@@ -933,6 +953,8 @@ k8s_audit_filter_check::k8s_audit_filter_check()
 			  {"ka.req.sec_ctx.fsGroup", "When the request object refers to a pod, the fsGroup gid specified by the security context."},
 			  {"ka.req.sec_ctx.runAsUser", "When the request object refers to a pod, the runAsUser uid specified by the security context."},
 			  {"ka.req.sec_ctx.runAsGroup", "When the request object refers to a pod, the runAsGroup gid specified by the security context."},
+			  {"ka.req.sec_ctx.supplementalGroups", "When the request object refers to a pod, the supplementalGroup gids specified by the security context."},
+			  {"ka.req.sec_ctx.supplementalGroups.within", "When the request object refers to a pod, return true if all gids in supplementalGroups are within the provided range. For example, ka.req.sec_ctx.supplementalGroups.within[10:20] returns true if every gid in supplementalGroups is within 10 and 20."},
 			  {"ka.req.service.type", "When the request object refers to a service, the service type"},
 			  {"ka.req.service.ports", "When the request object refers to a service, the service's ports. Can be indexed (e.g. ka.req.service.ports[0]). Without any index, returns all ports"},
 			  {"ka.req.volume.any_hostpath", "If the request object contains volume definitions, whether or not a hostPath volume exists that mounts the specified path(s) from the host (...hostpath[/etc]=true if a volume mounts /etc from the host). Multiple paths can be specified, separated by commas. The index can be a glob, in which case all volumes are considered to find any path matching the specified glob (...hostpath[/usr/*] would match either /usr/local or /usr/bin)"},
@@ -977,9 +999,9 @@ k8s_audit_filter_check::k8s_audit_filter_check()
 			{"ka.req.container.privileged", {"/requestObject/spec/containers"_json_pointer, index_privileged, a::IDX_ALLOWED, a::IDX_NUMERIC}},
 			{"ka.req.container.read_write_fs", {"/requestObject/spec/containers"_json_pointer, index_read_write_fs, a::IDX_ALLOWED, a::IDX_NUMERIC}},
 			{"ka.req.container.runAsUser.defined", {"/requestObject/spec/containers"_json_pointer, index_run_as_user_defined, a::IDX_ALLOWED, a::IDX_NUMERIC}},
-			{"ka.req.container.runAsUser.within", {"/requestObject/spec/containers"_json_pointer, check_run_as_user_within, a::IDX_ALLOWED, a::IDX_NUMERIC}},
+			{"ka.req.container.runAsUser.within", {"/requestObject/spec/containers"_json_pointer, check_run_as_user_within, a::IDX_ALLOWED, a::IDX_KEY}},
 			{"ka.req.container.runAsGroup.defined", {"/requestObject/spec/containers"_json_pointer, index_run_as_group_defined, a::IDX_ALLOWED, a::IDX_NUMERIC}},
-			{"ka.req.container.runAsGroup.within", {"/requestObject/spec/containers"_json_pointer, check_run_as_group_within, a::IDX_ALLOWED, a::IDX_NUMERIC}},
+			{"ka.req.container.runAsGroup.within", {"/requestObject/spec/containers"_json_pointer, check_run_as_group_within, a::IDX_ALLOWED, a::IDX_KEY}},
 			{"ka.req.role.rules", {"/requestObject/rules"_json_pointer}},
 			{"ka.req.role.rules.apiGroups", {"/requestObject/rules"_json_pointer, index_select, a::IDX_ALLOWED, a::IDX_NUMERIC}},
 			{"ka.req.role.rules.nonResourceURLs", {"/requestObject/rules"_json_pointer, index_select, a::IDX_ALLOWED, a::IDX_NUMERIC}},
@@ -987,6 +1009,8 @@ k8s_audit_filter_check::k8s_audit_filter_check()
 			{"ka.req.sec_ctx.fsGroup", {"/requestObject/spec/securityContext/fsGroup"_json_pointer}},
 			{"ka.req.sec_ctx.runAsUser", {"/requestObject/spec/securityContext/runAsUser"_json_pointer}},
 			{"ka.req.sec_ctx.runAsGroup", {"/requestObject/spec/securityContext/runAsGroup"_json_pointer}},
+			{"ka.req.sec_ctx.supplementalGroups", {"/requestObject/spec/securityContext/supplementalGroups"_json_pointer}},
+			{"ka.req.sec_ctx.supplementalGroups.within", {"/requestObject/spec/securityContext/supplementalGroups"_json_pointer, check_supplemental_groups_within, a::IDX_REQUIRED, a::IDX_KEY}},
 			{"ka.req.role.rules.verbs", {"/requestObject/rules"_json_pointer, index_select, a::IDX_ALLOWED, a::IDX_NUMERIC}},
 			{"ka.req.service.type", {"/requestObject/spec/type"_json_pointer}},
 			{"ka.req.service.ports", {"/requestObject/spec/ports"_json_pointer, index_generic, a::IDX_ALLOWED, a::IDX_NUMERIC}},
