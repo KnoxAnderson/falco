@@ -21,6 +21,7 @@ include_directories("${PROJECT_SOURCE_DIR}/../sysdig/userspace/libsinsp")
 include_directories("${PROJECT_BINARY_DIR}/userspace/engine")
 include_directories("${LUAJIT_INCLUDE}")
 include_directories("${NJSON_INCLUDE}")
+include_directories("${YAMLCPP_INCLUDE_DIR}")
 include_directories("${CURL_INCLUDE_DIR}")
 include_directories("${TBB_INCLUDE_DIR}")
 
@@ -29,6 +30,7 @@ set(FALCO_ENGINE_SOURCE_FILES
 	falco_common.cpp
 	falco_engine.cpp
 	json_evt.cpp
+	k8s_psp.cpp
 	ruleset.cpp
 	token_bucket.cpp
 	formats.cpp)

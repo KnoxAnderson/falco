@@ -91,6 +91,9 @@ static void usage()
 	   "                               Can not be specified with -t.\n"
 	   " -e <events_file>              Read the events from <events_file> (in .scap format for sinsp events, or jsonl for\n"
 	   "                               k8s audit events) instead of tapping into live.\n"
+	   " --psp <psp yaml file>         Read the provided file containing a K8s Pod Security Policy (PSP) specification,\n"
+	   "                               generate a rules file that can be used to detect potential violations of the PSP,\n"
+	   "                               and load the rules.\n"
 	   " -k <url>, --k8s-api=<url>\n"
 	   "                               Enable Kubernetes support by connecting to the API server\n"
       	   "                               specified as argument. E.g. \"http://admin:password@127.0.0.1:8080\".\n"
@@ -428,6 +431,7 @@ int falco_init(int argc, char **argv)
 	string list_flds_source = "";
 	bool print_support = false;
 	string cri_socket_path;
+	string psp_path;
 
 	// Used for writing trace files
 	int duration_seconds = 0;
@@ -457,6 +461,7 @@ int falco_init(int argc, char **argv)
 		{"option", required_argument, 0, 'o'},
 		{"print", required_argument, 0, 'p' },
 		{"pidfile", required_argument, 0, 'P' },
+		{"psp", required_argument, 0},
 		{"snaplen", required_argument, 0, 'S' },
 		{"stats_interval", required_argument, 0},
 		{"support", no_argument, 0},
@@ -619,6 +624,10 @@ int falco_init(int argc, char **argv)
 						list_flds_source = optarg;
 					}
 				}
+				else if (string(long_options[long_index].name) == "psp")
+				{
+					psp_path = optarg;
+				}
 				else if (string(long_options[long_index].name) == "stats_interval")
 				{
 					stats_interval = atoi(optarg);
@@ -768,6 +777,21 @@ int falco_init(int argc, char **argv)
 
 			engine->load_rules_file(filename, verbose, all_events, required_engine_version);
 			required_engine_versions[filename] = required_engine_version;
+		}
+
+		if(psp_path != "")
+		{
+			falco_logger::log(LOG_INFO, "Loading K8s PSP from file " + psp_path + ", generating rules, and loading rules:\n");
+			std::string psp_yaml;
+			std::string psp_rules;
+			uint64_t required_engine_version;
+
+			psp_yaml = read_file(psp_path);
+			psp_rules = engine->k8s_psp_to_falco_rules(psp_yaml);
+
+			engine->load_rules(psp_rules, verbose, all_events, required_engine_version);
+
+			// XXX/mstemm not sure if this should be added to the support bundle
 		}
 
 		// You can't both disable and enable rules
