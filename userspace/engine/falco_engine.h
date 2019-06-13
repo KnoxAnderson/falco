@@ -82,8 +82,7 @@ public:
 	// violations. This rules content can then be loaded into the
 	// engine using load_rules().
 	//
-	std::string k8s_psp_to_falco_rules(const std::string &psp_yaml);
-
+	std::string k8s_psp_to_falco_rules(const std::string &psp_yaml, const std::string &rules_template);
 	//
 	// Enable/Disable any rules matching the provided pattern
 	// (regex). When provided, enable/disable these rules in the
