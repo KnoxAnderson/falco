@@ -19,6 +19,7 @@ include_directories("${PROJECT_SOURCE_DIR}/../sysdig/userspace/libsinsp/third-pa
 include_directories("${PROJECT_SOURCE_DIR}/../sysdig/userspace/libscap")
 include_directories("${PROJECT_SOURCE_DIR}/../sysdig/userspace/libsinsp")
 include_directories("${PROJECT_BINARY_DIR}/userspace/engine")
+include_directories("${INJA_INCLUDE}")
 include_directories("${LUAJIT_INCLUDE}")
 include_directories("${NJSON_INCLUDE}")
 include_directories("${YAMLCPP_INCLUDE_DIR}")
