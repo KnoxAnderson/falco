@@ -435,7 +435,7 @@ int falco_init(int argc, char **argv)
 	string cri_socket_path;
 	string psp_path;
 	string psp_rules_path;
-	bool psp_save_rules;
+	bool psp_save_rules = false;
 
 	// Used for writing trace files
 	int duration_seconds = 0;
