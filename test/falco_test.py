@@ -83,12 +83,22 @@ class FalcoTest(Test):
         if not isinstance(self.rules_file, list):
             self.rules_file = [self.rules_file]
 
+        self.psp_file = self.params.get('psp_file', '*', default='')
+
+        if not isinstance(self.psp_file, list):
+            self.psp_file = [self.psp_file]
+
         self.rules_args = ""
 
         for file in self.rules_file:
             if not os.path.isabs(file):
                 file = os.path.join(self.basedir, file)
             self.rules_args = self.rules_args + "-r " + file + " "
+
+        for file in self.psp_file:
+            if not os.path.isabs(file):
+                file = os.path.join(self.basedir, file)
+            self.rules_args = self.rules_args + "--psp " + file + " "
 
         self.conf_file = self.params.get('conf_file', '*', default=os.path.join(self.basedir, '../falco.yaml'))
         if not os.path.isabs(self.conf_file):
