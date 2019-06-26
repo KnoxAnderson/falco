@@ -38,7 +38,7 @@ class FalcoTest(Test):
         if 'BUILD_TYPE' in os.environ:
             build_type = os.environ['BUILD_TYPE']
 
-        build_dir = os.path.join('/build', build_type)
+        build_dir = os.path.join('/home/mstemm/builds/falco', build_type)
         self.falcodir = self.params.get('falcodir', '/', default=os.path.join(self.basedir, build_dir))
 
         self.stdout_contains = self.params.get('stdout_contains', '*', default='')
